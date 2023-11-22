@@ -15,7 +15,7 @@ const uuid = require('uuid');
 const secretkey = 'userdata@12#45';
 const axios = require('axios');
 
-const isAdmin = require('../middleware/auth');
+// const isAdmin = require('../middleware/auth');
 Router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -278,8 +278,9 @@ Router.post('/qtymins',  (req, res) => {
 
 Router.get('/plant', async (req, res, next) => {
   const page = req.query.page || 1;
-  const pageSize = 200;
+  const pageSize = req.query.pageSize;
   const skip = (page - 1) * pageSize;
+  
 
   try {
     const plants = await plant.find().skip(skip).limit(pageSize);
@@ -477,7 +478,7 @@ Router.post('/currentorder',  async (req, res) => {
           send_email:true
         },
         link_meta : {
-          return_url:'https://growmoreplant.netlify.app/orderlist',
+          return_url:'https://localhost:4200',
           payment_methods:''
         }
       };
@@ -557,5 +558,17 @@ Router.get('/getlinkid',checkauth, (req, res) => {
     res.json(res1)
   });
 });
+
+Router.get('/allplant', async(req, res, next) => {
+  try {
+      const plants = await plant.find();
+      res.json(plants);
+  } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
 
 module.exports = Router;

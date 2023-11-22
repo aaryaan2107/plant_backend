@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const DB  = require('./connect/db');
 const port = 3000
-const Api = require('./routes/api.js');
+// const Api = require('./routes/api.js');
 const Apis = require('./routes/auth.js');
 const admin = require('./routes/admin.js');
 const cors = require('cors')
@@ -27,7 +27,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept');
   next();
 });
-app.use('/Api',Api);
+
 app.use('/Apis',Apis);
 app.use('/admin',admin)
 

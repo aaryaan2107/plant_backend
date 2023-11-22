@@ -3,6 +3,7 @@ const Router = express.Router();
 const bcrypt = require('bcrypt');
 const user = require('../model/user.js');
 const plant = require('../model/plant.js')
+const trend = require('../model/trend.js');
 
 Router.post('/signup', async (req, res) => {
     {
@@ -53,7 +54,68 @@ Router.post('/signup', async (req, res) => {
     });
   });
   
+  Router.post('/trending', async(req, res) => {
+    try {
+        const trendid = req.body.trendid;
+        const trendid2 = req.body.trendid2;
 
-  
+        const vplants = await plant.findById(trendid2);
+        if (!vplants) {
+            return res.status(404).json({ message: 'Plant not Found' });
+        }
+
+        const exist = await trend.findOne({ ID: trendid });
+
+        if (exist) {
+            return res.status(400).json({ message: 'Plant is already trending' });
+        }
+
+        const trendingplants = await trend.create({
+            ID: vplants.ID,
+            Family: vplants.Family,
+            Common_Name: vplants.Common_Name,
+            Botanical_Name: vplants.Botanical_Name,
+            Photo_1: vplants.Photo_1,
+            trending: true
+        });
+
+
+        return res.json({ message: 'Trending plant successful', Data: trendingplants });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+Router.get('/gettplants', async(req, res) => {
+    try {
+        const tplants = await trend.find();
+        res.json(tplants);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
+Router.delete('/removertrend/:id', async(req, res) => {
+    try {
+        const tidd = req.params.id;
+
+        const tplants = await trend.findOneAndDelete({ ID: tidd });
+        return res.json('plant deleted from trending..');
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
+Router.get('/trend', async(req, res) => {
+
+  try {
+      const trendingPlants = await trend.find();
+      res.json(trendingPlants);
+  } catch {
+      res.status(500).json({ error: 'Internal Error .' });
+  }
+});
 
 module.exports = Router;
