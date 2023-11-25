@@ -491,7 +491,7 @@ Router.post('/currentorder', async(req, res) => {
                   send_email: true
               },
               link_meta: {
-                  return_url: 'https://localhost:4200',
+                  return_url: 'https://growmoreplant.netlify.app',
                   payment_methods: ''
               }
           };
@@ -536,7 +536,7 @@ Router.get('/getpayment/:id', async(req, res) => {
           'x-client-secret': 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
       }
       const response = await axios.get('https://sandbox.cashfree.com/pg/links/' + link_id + '/orders', { headers: httpheader });
-      if (response.data) {
+      if (response.data && response.data.length) {
           const order_id = response.data[0].order_id;
           const response1 = await axios.get('https://sandbox.cashfree.com/pg/orders/' + order_id + '/payments', { headers: httpheader });
           if (response1.data) {
@@ -551,6 +551,24 @@ Router.get('/getpayment/:id', async(req, res) => {
       console.error('Error fetching data:', error);
 
   }
+});
+
+Router.get('/getrepayment/:id', async (req, res) => {
+    const link_id = req.params.id;
+    try {
+        const httpheader = {
+            'accpet': 'application/json',
+            'content-type': 'application/json',
+            'x-api-version': '2022-09-01',
+            'x-client-id': 'TEST1002931373b63abe8a1faf0f3d5631392001',
+            'x-client-secret': 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
+        }
+        const response = await axios.get('https://sandbox.cashfree.com/pg/links/'+link_id, { headers: httpheader });
+        res.json({link_url:response.data.link_url})
+    } catch (error) {
+        console.error('Error fetching data:', error);
+
+    }
 });
 
 Router.get('/getlinkid', checkauth, (req, res) => {
