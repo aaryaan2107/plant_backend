@@ -6,6 +6,7 @@ const wishlistschema = new mongoose.Schema({
     userId:String,
     Photo_1:String,
     Common_Name:String,
+    Botanical_Name:String,
     Price:String,
     ID:String,
     class:String

@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const Router = express.Router();
 const bcrypt = require('bcrypt');
@@ -20,7 +18,7 @@ const axios = require('axios');
 //===========================> plant part
 
 
-Router.get('/plant', async(req, res, next) => {
+Router.get('/plant', async (req, res, next) => {
     const page = req.query.page || 1;
     const pageSize = req.query.pageSize;
     const skip = (page - 1) * pageSize;
@@ -36,7 +34,7 @@ Router.get('/plant', async(req, res, next) => {
     }
 });
 
-Router.get('/allplant', async(req, res, next) => {
+Router.get('/allplant', async (req, res, next) => {
     try {
         const plants = await plant.find();
         res.json(plants);
@@ -47,7 +45,7 @@ Router.get('/allplant', async(req, res, next) => {
 
 //=================> filter part
 
-Router.get('/plants/filter/:code', async(req, res) => {
+Router.get('/plants/filter/:code', async (req, res) => {
     const coded = req.params.code;
     if (coded == 'Indoor' || coded == 'Outdoor') {
         try {
@@ -60,7 +58,7 @@ Router.get('/plants/filter/:code', async(req, res) => {
     }
 });
 
-Router.post('/filterPlants', async(req, res) => {
+Router.post('/filterPlants', async (req, res) => {
     const filters = req.body;
     // console.log(filters);
     const page = req.query.page || 1;
@@ -92,7 +90,7 @@ Router.post('/filterPlants', async(req, res) => {
 
 //==========================> user part
 
-Router.post('/login', async(req, res) => {
+Router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const user1 = await user.findOne({ username });
@@ -113,7 +111,7 @@ Router.post('/login', async(req, res) => {
     }
 });
 
-Router.post('/signup', async(req, res) => {
+Router.post('/signup', async (req, res) => {
     {
         try {
             const { username, password, email, phone, address } = req.body;
@@ -146,7 +144,7 @@ Router.get('/data', checkauth, (req, res) => {
     }
 });
 
-Router.post('/valid', async(req, res) => {
+Router.post('/valid', async (req, res) => {
     const token = req.headers.authorization.split(' ')[1];
     if (!token) {
         res.status(200).json({ success: false, message: "Error! Token was not provided." });
@@ -183,7 +181,7 @@ Router.get('/alluser', (req, res) => {
 
 //=======================> cart part
 Router.post('/cart', (req, res) => {
-    const { userId, productId, quantity, Price } = req.body;
+    const { userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1 } = req.body;
 
     CartItem.findOne({ userId: userId, productId: productId })
         .exec()
@@ -203,7 +201,7 @@ Router.post('/cart', (req, res) => {
                         })
                 }
             } else {
-                const cart = new CartItem({ userId, productId, quantity, Price });
+                const cart = new CartItem({ userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1 });
                 cart.save();
             }
 
@@ -221,7 +219,7 @@ Router.get('/cartitem', checkauth, (req, res) => {
         })
 });
 
-Router.post('/cartnew', checkauth, async(req, res) => {
+Router.post('/cartnew', checkauth, async (req, res) => {
 
     try {
         const { cartData } = req.body;
@@ -314,26 +312,25 @@ Router.post('/qtymins', (req, res) => {
 
 //============================> wishlist part
 
-Router.post('/wishlist',  async (req, res) => {
-  const { productId , userId , Photo_1 , Common_Name , Price , ID} = req.body;
-  wishlist.findOne({productId:productId,userId:userId})
-  .exec()
-  .then(async (res1) =>{
-    if(res1)
-    {
-      res.json({success:false,massges:'product already add' , data :res1});
-    }
-    else
-    {
-      const newwishlist = new wishlist({ productId ,userId,class:'res1' ,Photo_1 , Common_Name , Price , ID});
-      await newwishlist.save();
-      res.json({success:true, data:'product add'});
-    }
-  });
-  
+Router.post('/wishlist', async (req, res) => {
+    const { productId, userId, Photo_1, Common_Name, Botanical_Name, Price, ID } = req.body;
+    wishlist.findOne({ productId: productId, userId: userId })
+        .exec()
+        .then(async (res1) => {
+            if (res1) {
+                res.json({ success: false, massges: 'product already add', data: res1 });
+            }
+            else {
+                const newwishlist = new wishlist({ productId, userId, class: 'res1', Photo_1, Common_Name, Botanical_Name, Price, ID });
+                console.log(newwishlist);
+                await newwishlist.save();
+                res.json({ success: true, data: 'product add' });
+            }
+        });
+
 });
 
-Router.get('/getwishlist', checkauth, async(req, res) => {
+Router.get('/getwishlist', checkauth, async (req, res) => {
     const userId = req.userId;
     wishlist.find({ userId: userId })
         .exec()
@@ -372,7 +369,7 @@ Router.delete('/deleteorder/:userId', (req, res, next) => {
         });
 });
 
-Router.get('/orderid', checkauth, async(req, res) => {
+Router.get('/orderid', checkauth, async (req, res) => {
     const userId = req.userId;
     orderid.findOne({ userId: userId }).sort({ "orderID": -1 }).limit(1)
         .exec()
@@ -381,7 +378,7 @@ Router.get('/orderid', checkauth, async(req, res) => {
         });
 });
 
-Router.get('/getcurrentorder', checkauth, async(req, res) => {
+Router.get('/getcurrentorder', checkauth, async (req, res) => {
     const userId = req.userId;
 
     order.find({ userId: userId, statusbar: 'current' })
@@ -401,7 +398,7 @@ Router.post('/allgetcurrentorder', (req, res, next) => {
         });
 });
 
-Router.get('/pastorder/:userId', async(req, res) => {
+Router.get('/pastorder/:userId', async (req, res) => {
     const userId = req.params.userId;
     order.findByIdAndUpdate(userId, { statusbar: 'past' })
         .exec()
@@ -415,7 +412,7 @@ Router.get('/pastorder/:userId', async(req, res) => {
 
 //======================> search part
 
-Router.get('/search', async(req, res) => {
+Router.get('/search', async (req, res) => {
     const { search } = req.query;
     const page = req.query.page || 1;
     const pageSize = req.query.pageSize;
@@ -436,7 +433,7 @@ Router.get('/search', async(req, res) => {
     }
 });
 
-Router.get('/search2', async(req, res) => {
+Router.get('/search2', async (req, res) => {
     const { search } = req.query;
     try {
         const plants = await plant.find({
@@ -453,104 +450,104 @@ Router.get('/search2', async(req, res) => {
 });
 // ======================> payment part
 
-Router.post('/currentorder', async(req, res) => {
-  const { userId, Price, quantity, address, orderID } = req.body;
-  const userdata = await user.findOne({ _id: userId });
+Router.post('/currentorder', async (req, res) => {
+    const { userId, Price, quantity, address, orderID } = req.body;
+    const userdata = await user.findOne({ _id: userId });
 
-  try {
-      const randomId = uuid.v4();
-      const sourceData = await CartItem.find({ userId: userId });
-      await CartItem.deleteMany({ userId: userId });
-      const currentDate = new Date();
-      const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
-      const newsourceData = sourceData.map(item => ({
-          ...item.toObject(),
-          statusbar: 'current',
-          date: formattedDate,
-          orderID: orderID,
-          _id: undefined,
-      }));
+    try {
+        const randomId = uuid.v4();
+        const sourceData = await CartItem.find({ userId: userId });
+        await CartItem.deleteMany({ userId: userId });
+        const currentDate = new Date();
+        const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+        const newsourceData = sourceData.map(item => ({
+            ...item.toObject(),
+            statusbar: 'current',
+            date: formattedDate,
+            orderID: orderID,
+            _id: undefined,
+        }));
 
-      await order.insertMany(newsourceData);
+        await order.insertMany(newsourceData);
 
-      try {
-          const cashfreeRequest = {
-              appId: 'TEST1002931373b63abe8a1faf0f3d5631392001',
-              secretKey: 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
-              link_id: randomId,
-              link_amount: Price,
-              link_currency: 'INR',
-              link_purpose: 'Payment for PlayStation 11',
-              customer_details: {
-                  customer_phone: String(userdata.phone),
-                  customer_email: userdata.email,
-                  customer_name: userdata.username
-              },
-              link_notify: {
-                  send_sms: true,
-                  send_email: true
-              },
-              link_meta: {
-                  return_url: 'https://growmoreplant.netlify.app',
-                  payment_methods: ''
-              }
-          };
-          const httpheader = {
-              'accpet': 'application/json',
-              'content-type': 'application/json',
-              'x-api-version': '2022-09-01',
-              'x-client-id': 'TEST1002931373b63abe8a1faf0f3d5631392001',
-              'x-client-secret': 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
-          }
-          const response = await axios.post('https://sandbox.cashfree.com/pg/links', cashfreeRequest, { headers: httpheader });
-          if (response.data && response.data.link_url) {
-              res.json({ paymentLink: response.data.link_url });
+        try {
+            const cashfreeRequest = {
+                appId: 'TEST1002931373b63abe8a1faf0f3d5631392001',
+                secretKey: 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
+                link_id: randomId,
+                link_amount: Price,
+                link_currency: 'INR',
+                link_purpose: 'Payment for PlayStation 11',
+                customer_details: {
+                    customer_phone: String(userdata.phone),
+                    customer_email: userdata.email,
+                    customer_name: userdata.username
+                },
+                link_notify: {
+                    send_sms: true,
+                    send_email: true
+                },
+                link_meta: {
+                    return_url: 'http://localhost:4200',
+                    payment_methods: ''
+                }
+            };
+            const httpheader = {
+                'accpet': 'application/json',
+                'content-type': 'application/json',
+                'x-api-version': '2022-09-01',
+                'x-client-id': 'TEST1002931373b63abe8a1faf0f3d5631392001',
+                'x-client-secret': 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
+            }
+            const response = await axios.post('https://sandbox.cashfree.com/pg/links', cashfreeRequest, { headers: httpheader });
+            if (response.data && response.data.link_url) {
+                res.json({ paymentLink: response.data.link_url });
 
-              const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, address: address });
-              await neworderid.save();
+                const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, address: address });
+                await neworderid.save();
 
-          } else {
-              res.status(500).json({ error: 'Payment link not found in Cashfree response' });
-          }
-      } catch (error) {
-          console.error(error);
-          res.status(500).json({ error: 'Payment initiation failed' });
-      }
+            } else {
+                res.status(500).json({ error: 'Payment link not found in Cashfree response' });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Payment initiation failed' });
+        }
 
-  } catch (error) {
-      console.error('Error transferring data:', error);
-  }
+    } catch (error) {
+        console.error('Error transferring data:', error);
+    }
 
 });
 
 
-Router.get('/getpayment/:id', async(req, res) => {
-  const link_id = req.params.id;
-  console.log(link_id);
-  try {
-      const httpheader = {
-          'accpet': 'application/json',
-          'content-type': 'application/json',
-          'x-api-version': '2022-09-01',
-          'x-client-id': 'TEST1002931373b63abe8a1faf0f3d5631392001',
-          'x-client-secret': 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
-      }
-      const response = await axios.get('https://sandbox.cashfree.com/pg/links/' + link_id + '/orders', { headers: httpheader });
-      if (response.data && response.data.length) {
-          const order_id = response.data[0].order_id;
-          const response1 = await axios.get('https://sandbox.cashfree.com/pg/orders/' + order_id + '/payments', { headers: httpheader });
-          if (response1.data) {
-              res.json({ data: response1.data[0].payment_method, order_id: response1.data[0].order_id, cf_payment_id: response1.data[0].cf_payment_id });
-          } else {
-              res.status(500).json({ error: 'not get payment method data ' });
-          }
-      } else {
-          res.status(500).json({ error: 'not get order_id ' });
-      }
-  } catch (error) {
-      console.error('Error fetching data:', error);
+Router.get('/getpayment/:id', async (req, res) => {
+    const link_id = req.params.id;
+    console.log(link_id);
+    try {
+        const httpheader = {
+            'accpet': 'application/json',
+            'content-type': 'application/json',
+            'x-api-version': '2022-09-01',
+            'x-client-id': 'TEST1002931373b63abe8a1faf0f3d5631392001',
+            'x-client-secret': 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
+        }
+        const response = await axios.get('https://sandbox.cashfree.com/pg/links/' + link_id + '/orders', { headers: httpheader });
+        if (response.data && response.data.length) {
+            const order_id = response.data[0].order_id;
+            const response1 = await axios.get('https://sandbox.cashfree.com/pg/orders/' + order_id + '/payments', { headers: httpheader });
+            if (response1.data) {
+                res.json({ data: response1.data[0].payment_method, order_id: response1.data[0].order_id, cf_payment_id: response1.data[0].cf_payment_id });
+            } else {
+                res.status(500).json({ error: 'not get payment method data ' });
+            }
+        } else {
+            res.status(500).json({ error: 'not get order_id ' });
+        }
+    } catch (error) {
+        console.error('Error fetching data:', error);
 
-  }
+    }
 });
 
 Router.get('/getrepayment/:id', async (req, res) => {
@@ -563,8 +560,8 @@ Router.get('/getrepayment/:id', async (req, res) => {
             'x-client-id': 'TEST1002931373b63abe8a1faf0f3d5631392001',
             'x-client-secret': 'TEST207a125d08a56da08f47f2aaef77307d9f617fec',
         }
-        const response = await axios.get('https://sandbox.cashfree.com/pg/links/'+link_id, { headers: httpheader });
-        res.json({link_url:response.data.link_url})
+        const response = await axios.get('https://sandbox.cashfree.com/pg/links/' + link_id, { headers: httpheader });
+        res.json({ link_url: response.data.link_url })
     } catch (error) {
         console.error('Error fetching data:', error);
 
@@ -572,11 +569,11 @@ Router.get('/getrepayment/:id', async (req, res) => {
 });
 
 Router.get('/getlinkid', checkauth, (req, res) => {
-  const userId = req.userId;
-  orderid.find({ userId: userId })
-      .then((res1) => {
-          res.json(res1)
-      });
+    const userId = req.userId;
+    orderid.find({ userId: userId })
+        .then((res1) => {
+            res.json(res1)
+        });
 });
 
 module.exports = Router;

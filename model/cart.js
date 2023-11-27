@@ -5,6 +5,9 @@ const cartItemSchema = new mongoose.Schema({
   productId: String,
   quantity:Number,
   Price:Number,
+  Common_Name:String,
+  Botanical_Name:String,
+  Photo_1:String,
   orderID:Number,
 });
 
