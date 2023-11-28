@@ -218,7 +218,6 @@ Router.get('/cartitem', checkauth, (req, res) => {
             res.json(cartItems);
         })
 });
-
 Router.post('/cartnew', checkauth, async (req, res) => {
 
     try {
@@ -229,7 +228,10 @@ Router.post('/cartnew', checkauth, async (req, res) => {
                     userId: req.userId,
                     productId: productItem.ID,
                     quantity: outerItem.quantity,
-                    Price: productItem.Price
+                    Price: productItem.Price,
+                    Common_Name:productItem.Common_Name,
+                    Botanical_Name:productItem.Botanical_Name,
+                    Photo_1:productItem.Photo_1
                 });
 
                 await cartItem.save();
@@ -456,19 +458,8 @@ Router.post('/currentorder', async (req, res) => {
 
     try {
         const randomId = uuid.v4();
-        const sourceData = await CartItem.find({ userId: userId });
-        await CartItem.deleteMany({ userId: userId });
-        const currentDate = new Date();
-        const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
-        const newsourceData = sourceData.map(item => ({
-            ...item.toObject(),
-            statusbar: 'current',
-            date: formattedDate,
-            orderID: orderID,
-            _id: undefined,
-        }));
-
-        await order.insertMany(newsourceData);
+        const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, address: address, statusbar: 'draft' });
+        await neworderid.save();
 
         try {
             const cashfreeRequest = {
@@ -488,8 +479,9 @@ Router.post('/currentorder', async (req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'http://localhost:4200',
-                    payment_methods: ''
+                    return_url: 'https://growmoreplant.netlify.app/orderlist/payment/' + randomId,
+                    payment_methods: '',
+                    notify_url: 'https://plant-backend6.onrender.com/Apis/cashfree-webhook'
                 }
             };
             const httpheader = {
@@ -501,11 +493,27 @@ Router.post('/currentorder', async (req, res) => {
             }
             const response = await axios.post('https://sandbox.cashfree.com/pg/links', cashfreeRequest, { headers: httpheader });
             if (response.data && response.data.link_url) {
+                const sourceData = await CartItem.find({ userId: userId });
+                orderid.findOneAndUpdate({ orderID: orderID, userId: userId }, { statusbar: 'pending' })
+                    .exec()
+                    .then((res2) => {
+
+                    });
+
+                await CartItem.deleteMany({ userId: userId });
+                const currentDate = new Date();
+                const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+                const newsourceData = sourceData.map(item => ({
+                    ...item.toObject(),
+                    statusbar: 'current',
+                    date: formattedDate,
+                    orderID: orderID,
+                    _id: undefined,
+                }));
+
+                await order.insertMany(newsourceData);
+
                 res.json({ paymentLink: response.data.link_url });
-
-                const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, address: address });
-                await neworderid.save();
-
             } else {
                 res.status(500).json({ error: 'Payment link not found in Cashfree response' });
             }
@@ -575,5 +583,17 @@ Router.get('/getlinkid', checkauth, (req, res) => {
             res.json(res1)
         });
 });
+
+
+Router.post('/cashfree-webhook', (req, res) => {
+    // Handle the Cashfree webhook payload
+    const payload = req.body;
+    console.log('Received Cashfree webhook:', payload);
+
+    // Add your logic to process the webhook payload
+
+    res.status(200).json({ massges: 'Webhook received successfully', data: payload });
+});
+
 
 module.exports = Router;
