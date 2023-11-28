@@ -182,7 +182,7 @@ Router.get('/alluser', (req, res) => {
 //=======================> cart part
 Router.post('/cart', (req, res) => {
     const { userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1 } = req.body;
-
+    console.log(req.body);
     CartItem.findOne({ userId: userId, productId: productId })
         .exec()
         .then((res) => {

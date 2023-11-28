@@ -110,12 +110,17 @@ Router.delete('/removertrend/:id', async(req, res) => {
 
 Router.get('/trend', async(req, res) => {
 
-  try {
-      const trendingPlants = await trend.find();
-      res.json(trendingPlants);
-  } catch {
-      res.status(500).json({ error: 'Internal Error .' });
-  }
+  // try {
+  //     const trendingPlants = await trend.find();
+  //     res.json(trendingPlants);
+  // } catch {
+  //     res.status(500).json({ error: 'Internal Error .' });
+  // }
+  trend.find()
+  .exec()
+  .then((res1) => {
+      res.json(res1);
+  })
 });
 
 module.exports = Router;
