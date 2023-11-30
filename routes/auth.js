@@ -114,7 +114,7 @@ Router.post('/login', async (req, res) => {
 Router.post('/signup', async (req, res) => {
     {
         try {
-            const { username, password, email, phone, address } = req.body;
+            const { username, password, email, phone, home_address } = req.body;
 
             if (!username || !password) {
                 res.status(400).json({ error: 'Username or Password is Empty' });
@@ -126,7 +126,7 @@ Router.post('/signup', async (req, res) => {
                 return;
             }
             const hashpassword = await bcrypt.hash(password, 10);
-            const newuser = new user({ username, password: hashpassword, email, phone, address, role: 'user' });
+            const newuser = new user({ username, password: hashpassword, email, phone, home_address, role: 'user' });
             await newuser.save();
             res.status(200).json({ message: 'signup successfull' });
         } catch (error) {
@@ -177,6 +177,51 @@ Router.get('/alluser', (req, res) => {
             res.json(res1);
         })
 })
+
+Router.put('/update', checkauth, (req, res) => {
+    const userId = req.userId;
+    const updatedData = req.body.updatedUserData;
+
+    user.findByIdAndUpdate(userId, updatedData)
+        .exec()
+        .then((result) => {
+            if (result) {
+                console.log(result);
+                res.json({ success: true, data: result }); // Send the updated data in the response
+            } else {
+                res.json({ success: false, message: 'User not found' });
+            }
+        })
+        .catch((err) => {
+            res.status(500).json({ success: false, message: 'Server error' });
+        });
+});
+
+Router.put('/checkupdate', checkauth, (req, res) => {
+    const userId = req.userId;
+    const updatedData = req.body.updatedUserData;
+    const query = {};
+    Object.entries(updatedData).forEach(([key, value]) => {
+        if (value !== '') {
+            query[key] = value;
+        }
+    });
+    user.findByIdAndUpdate(userId, query)
+        .exec()
+        .then((result) => {
+            if (result) {
+                console.log(result);
+                res.json({ success: true, data: result }); // Send the updated data in the response
+            } else {
+                res.json({ success: false, message: 'User not found' });
+            }
+        })
+        .catch((err) => {
+            res.status(500).json({ success: false, message: 'Server error' });
+        });
+});
+
+
 
 
 //=======================> cart part
@@ -453,12 +498,12 @@ Router.get('/search2', async (req, res) => {
 // ======================> payment part
 
 Router.post('/currentorder', async (req, res) => {
-    const { userId, Price, quantity, address, orderID } = req.body;
+    const { userId, Price, quantity, home_address, orderID } = req.body;
     const userdata = await user.findOne({ _id: userId });
 
     try {
         const randomId = uuid.v4();
-        const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, address: address, statusbar: 'draft' });
+        const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, home_address: home_address, statusbar: 'draft' });
         await neworderid.save();
 
         try {
