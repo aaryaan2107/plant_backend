@@ -595,5 +595,19 @@ Router.post('/cashfree-webhook', (req, res) => {
     res.status(200).json({ massges: 'Webhook received successfully', data: payload });
 });
 
+Router.get('/plant/:Family', (req, res) => {
+    const Family = req.params.Family;
+    plant.find({Family:Family})
+    .exec()
+    .then((res1) => {
+        res.json({data:res1,length:res1.length});
+    });
+});
 
+Router.get('/plantid/:ID', (req, res) => {
+    plant.find({ID:req.params.ID})
+    .then((res1) => {
+        res.json({data:res1});
+    });
+});
 module.exports = Router;

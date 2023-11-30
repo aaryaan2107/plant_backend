@@ -3,7 +3,7 @@
 
     const plant = new mongoose.Schema({
   
-        ID:String,
+        ID:Number,
         Family:String,
         Common_Name:String,
         Botanical_Name:String,
