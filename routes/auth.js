@@ -13,6 +13,12 @@ const orderid = require("../model/orderid.js");
 const uuid = require('uuid');
 const secretkey = 'userdata@12#45';
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
+const pdf = require('html-pdf');
+const ejs = require('ejs');
+
+
 
 
 //===========================> plant part
@@ -171,7 +177,30 @@ Router.get('/profile', checkauth, (req, res) => {
 });
 
 
-Router.get('/alluser', (req, res) => {
+Router.post('/adminrole', async(req, res) => {
+    const userId = req.body.id;
+    let role = req.body.str;
+    if (role === 'admin') {
+        role = 'user';
+    } else {
+        role = 'admin';
+    }
+    try {
+        user.findByIdAndUpdate(userId, { role: role })
+            .then((result) => {
+                if (result) {
+                    console.log(result);
+                    res.json({ success: true, message: 'User added to admin' }); // Send the updated data in the response
+                } else {
+                    res.json({ success: false, message: 'User not added to admin' });
+                }
+            })
+    } catch {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+})
+
+Router.get('/Alluser', (req, res) => {
     user.find()
         .then((res1) => {
             res.json(res1);
@@ -524,7 +553,7 @@ Router.post('/currentorder', async (req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'https://growmoreplant.netlify.app/orderlist/payment/' + randomId,
+                    return_url: 'http://localhost:4200/orderlist/payment/' + randomId,
                     payment_methods: '',
                     notify_url: 'https://plant-backend6.onrender.com/Apis/cashfree-webhook'
                 }
@@ -655,4 +684,46 @@ Router.get('/plantid/:ID', (req, res) => {
         res.json({data:res1});
     });
 });
+
+
+
+//================= pdf part
+
+
+Router.get('/pdf', async (req, res) => {
+    console.log('sdfldf');
+
+
+    const orderData =await order.find({orderID:4,userId:'6569a4b66396d00721c0732e'});
+    
+      // Specify the path to the EJS file
+      const ejsFilePath = path.join(__dirname, 'order.ejs');
+    
+      // Render the EJS file with orderData
+      ejs.renderFile(ejsFilePath, { orderData }, (err, htmlContent) => {
+        if (err) {
+          res.status(500).send('Error rendering EJS file');
+          return;
+        }
+        // Define options for pdf.create
+        const options = { format: 'Letter' };
+
+        // Generate PDF and send it as a response
+        pdf.create(htmlContent, options).toStream((pdfErr, stream) => {
+            if (pdfErr) {
+                res.status(500).send('Error generating PDF');
+                return;
+            }
+
+            // Set the content type and attachment header
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=order-summary.pdf');
+
+            // Pipe the PDF stream to the response
+            stream.pipe(res);
+            // res.json('ddfhfdhhf');
+        });
+    });
+});
+
 module.exports = Router;

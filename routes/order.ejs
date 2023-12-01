@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <title>Order Summary</title>
+    <style>
+        body {
+    font-family: 'Arial', sans-serif;
+    background-color: rgb(255, 255, 255);
+    margin: 20px;
+    padding: 20px;
+  }
+  
+  h1 {
+    color: #f30d0d;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+  
+  li:hover {
+    background-color: #f9f9f9;
+  }
+    </style>
+  </head>
+  <body>
+    <h1>Order Summary</h1>
+    <ul>
+      <% orderData.forEach(function(item) { %>
+        <li>productId: <%= item.productId %></li>
+        <li>Quantity: <%= item.quantity %></li> 
+        <li>Price: $<%= item.Price %></li>
+      <% }); %>
+    </ul>
+  </body>
+</html>
