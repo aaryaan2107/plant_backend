@@ -5,6 +5,8 @@ const orderidschema = new mongoose.Schema({
     randomId:String,
     userId:String,
     Price:Number,
+    statusbar:String,
+    date:String,
     quantity:Number,
     address:String,
 });

@@ -453,17 +453,15 @@ Router.get('/orderid', checkauth, async (req, res) => {
             res.json(res1);
         });
 });
-
 Router.get('/getcurrentorder', checkauth, async (req, res) => {
     const userId = req.userId;
 
-    order.find({ userId: userId, statusbar: 'current' })
+    orderid.find({ userId: userId })
         .exec()
         .then((res1) => {
             res.json(res1);
         });
 });
-
 Router.post('/allgetcurrentorder', (req, res, next) => {
     const { statusbar } = req.body;
 
@@ -532,7 +530,9 @@ Router.post('/currentorder', async (req, res) => {
 
     try {
         const randomId = uuid.v4();
-        const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, home_address: home_address, statusbar: 'draft' });
+        const currentDate = new Date();
+        const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+        const neworderid = new orderid({ orderID: orderID, randomId: randomId, userId: userId, Price: Price, quantity: quantity, address: home_address, date: formattedDate, statusbar: 'draft' });
         await neworderid.save();
 
         try {
@@ -553,7 +553,7 @@ Router.post('/currentorder', async (req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'https://growmoreplant.netlify.app/#/orderlist/payment/' + randomId,
+                    return_url: 'http://localhost:4200/orderlist/payment/' + randomId,
                     payment_methods: '',
                     notify_url: 'https://plant-backend6.onrender.com/Apis/cashfree-webhook'
                 }
@@ -575,8 +575,6 @@ Router.post('/currentorder', async (req, res) => {
                     });
 
                 await CartItem.deleteMany({ userId: userId });
-                const currentDate = new Date();
-                const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
                 const newsourceData = sourceData.map(item => ({
                     ...item.toObject(),
                     statusbar: 'current',
@@ -725,5 +723,18 @@ Router.get('/pdf', async (req, res) => {
         });
     });
 });
+
+Router.get('/orderinfo/:ID',checkauth, async (req, res) => {
+    const userId = req.userId;
+    const id = req.params.ID;
+    try {
+        const order1 = await orderid.find({userId:userId,orderID:id});
+        const res1 = await order.find({orderID:id,userId:userId});
+        res.json({item:res1,date:order1[0].date,Price:order1[0].Price,Statusbar:order1[0].statusbar,address:order1[0].address})    
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 
 module.exports = Router;
