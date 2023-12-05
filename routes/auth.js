@@ -434,8 +434,7 @@ Router.delete('/deletewishlist/:userId', (req, res, next) => {
 
 Router.delete('/deleteorder/:userId', (req, res, next) => {
     const userId = req.params.userId;
-    console.log(userId);
-    order.findByIdAndUpdate(userId, { statusbar: 'cancel' })
+    orderid.findByIdAndUpdate(userId, { statusbar: 'cancel' })
         .exec()
         .then(result => {
             res.status(200).json({ message: 'order item cancle successfully' });
@@ -576,7 +575,7 @@ Router.post('/currentorder', async (req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'https://growmoreplant.netlify.app/#//orderlist/payment/' + randomId,
+                    return_url: 'http://localhost:4200/orderlist/payment/' + randomId,
                     payment_methods: '',
                     notify_url: 'https://plant-backend6.onrender.com/Apis/getpayment/' + randomId
                 }
