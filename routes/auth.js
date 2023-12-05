@@ -522,6 +522,29 @@ Router.get('/search2', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+
+Router.get('/search3', async(req, res) => {
+    const { search } = req.query;
+    // console.log(search);
+    // console.log(search.charAt(0));
+    try {
+        const plants = await plant.find({
+            $or: [
+                { Common_Name: { $regex: `^${search}`, $options: 'i' } }, // Match at the beginning (case-insensitive)
+                // { Botanical_Name: { $regex: `^${search}`, $options: 'i' } }, // Match at the beginning (case-insensitive)
+            ],
+        });
+
+        res.json(plants);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+
+
 // ======================> payment part
 
 Router.post('/currentorder', async (req, res) => {
@@ -553,9 +576,9 @@ Router.post('/currentorder', async (req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'http://localhost:4200/orderlist/payment/' + randomId,
+                    return_url: 'https://growmoreplant.netlify.app/#//orderlist/payment/' + randomId,
                     payment_methods: '',
-                    notify_url: 'https://plant-backend6.onrender.com/Apis/cashfree-webhook'
+                    notify_url: 'https://plant-backend6.onrender.com/Apis/getpayment/' + randomId
                 }
             };
             const httpheader = {
@@ -615,8 +638,15 @@ Router.get('/getpayment/:id', async (req, res) => {
         const response = await axios.get('https://sandbox.cashfree.com/pg/links/' + link_id + '/orders', { headers: httpheader });
         if (response.data && response.data.length) {
             const order_id = response.data[0].order_id;
+            // orderid.findOneAndUpdate({randomId:link_id},)
             const response1 = await axios.get('https://sandbox.cashfree.com/pg/orders/' + order_id + '/payments', { headers: httpheader });
             if (response1.data) {
+                if(response1.data[0].payment_status == 'SUCCESS') {
+                    orderid.findOneAndUpdate({randomId:link_id},{statusbar:response1.data[0].payment_status})
+                }
+                else {
+                    orderid.findOneAndUpdate({randomId:link_id},{statusbar:'failed'})
+                }
                 res.json({ data: response1.data[0].payment_method, order_id: response1.data[0].order_id, cf_payment_id: response1.data[0].cf_payment_id });
             } else {
                 res.status(500).json({ error: 'not get payment method data ' });
@@ -734,6 +764,13 @@ Router.get('/orderinfo/:ID',checkauth, async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
+});
+
+Router.get('/username', checkauth, async(req, res) => {
+    const userId = req.userId;
+    console.log(userId);
+    const use = await user.findById(userId);
+    res.json({ name: use.username });
 });
 
 
