@@ -68,7 +68,7 @@ Router.get('/plant', async(req, res, next) => {
 
 Router.get('/allplant', async(req, res, next) => {
     try {
-        const plants = await plant.find().skip(140);
+        const plants = await plant.find();
 
         const allplants = plants.map(plant => ({
             _id: plant._id,
