@@ -24,30 +24,209 @@ const ejs = require('ejs');
 //===========================> plant part
 
 
-Router.get('/plant', async (req, res, next) => {
+// Router.get('/plant', async (req, res, next) => {
+//     const page = req.query.page || 1;
+//     const pageSize = req.query.pageSize;
+//     const skip = (page - 1) * pageSize;
+//     try {
+//         const totalplants = (await plant.find()).length;
+//         const plants = await plant.find().skip(skip).limit(pageSize);
+//         res.json({
+//             plants: plants,
+//             totalplants: totalplants
+//         });
+//     } catch (error) {
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
+
+Router.get('/plant', async(req, res, next) => {
     const page = req.query.page || 1;
     const pageSize = req.query.pageSize;
     const skip = (page - 1) * pageSize;
+
     try {
         const totalplants = (await plant.find()).length;
         const plants = await plant.find().skip(skip).limit(pageSize);
+        const allplants = plants.map(plant => ({
+            ID: plant.ID,
+            Common_Name: plant.Common_Name,
+            Botanical_Name: plant.Botanical_Name,
+            Price: plant.Price,
+            Photo_1: plant.Photo_1,
+        }));
         res.json({
-            plants: plants,
+            plants: allplants,
             totalplants: totalplants
         });
+
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-Router.get('/allplant', async (req, res, next) => {
+
+Router.get('/allplant', async(req, res, next) => {
     try {
-        const plants = await plant.find();
-        res.json(plants);
+        const plants = await plant.find().skip(140);
+
+        const allplants = plants.map(plant => ({
+            _id: plant._id,
+            ID: plant.ID,
+            Common_Name: plant.Common_Name,
+            Botanical_Name: plant.Botanical_Name,
+            Price: plant.Price,
+        }));
+
+        res.json(allplants);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+Router.get('/plantinfo1/:ID', async(req, res) => {
+    try {
+        const plants = await plant.find({ ID: req.params.ID });
+        const allplants = plants.map(plant => ({
+            ID: plant.ID,
+            Family: plant.Family,
+            Common_Name: plant.Common_Name,
+            Botanical_Name: plant.Botanical_Name,
+            Category: plant.Category,
+            Growing_Time: plant.Growing_Time,
+            Maintenance: plant.Maintenance,
+            Special_Properties: plant.Special_Properties,
+            Price: plant.Price,
+            Photo_1: plant.Photo_1,
+            Photo_2: plant.Photo_2,
+            Photo_3: plant.Photo_3,
+        }));
+        res.json(allplants);
+    } catch {
+        res.status(500).json({ error: 'plant not found' });
+    }
+});
+
+
+Router.get('/plantinfo2/:ID', async(req, res) => {
+    try {
+        const plants = await plant.find({ ID: req.params.ID });
+        const allplants = plants.map(plant => ({
+            ID: plant.ID,
+            Planting_Potting_Growing_Instruction: plant.Planting_Potting_Growing_Instruction,
+            Direction: plant.Direction,
+            WaterFreq: plant.WaterFreq,
+            Soil: plant.Soil,
+            Soil_Moisture: plant.Soil_Moisture,
+            Soil_PH: plant.Soil_PH,
+            Price: plant.Price,
+            Photo_1: plant.Photo_1,
+            Photo_2: plant.Photo_2,
+            Photo_3: plant.Photo_3,
+        }));
+        res.json(allplants);
+    } catch {
+        res.status(500).json({ error: 'plant not found' });
+    }
+});
+
+
+
+Router.get('/plantinfo3/:ID', async(req, res) => {
+    try {
+        const plants = await plant.find({ ID: req.params.ID });
+        const allplants = plants.map(plant => ({
+            ID: plant.ID,
+            Sunlight_Freq: plant.Sunlight_Freq,
+            WaterReq: plant.WaterReq,
+            WaterFreq: plant.WaterFreq,
+            Temprature: plant.Temprature,
+            Humidity: plant.Humidity,
+            Fertilizer: plant.Fertilizer,
+            Price: plant.Price,
+            Photo_1: plant.Photo_1,
+            Photo_2: plant.Photo_2,
+            Photo_3: plant.Photo_3,
+        }));
+        res.json(allplants);
+    } catch {
+        res.status(500).json({ error: 'plant not found' });
+    }
+});
+
+
+
+Router.get('/plantinfo4/:ID', async(req, res) => {
+    try {
+        const plants = await plant.find({ ID: req.params.ID });
+        const allplants = plants.map(plant => ({
+            ID: plant.ID,
+            Water_Hardness: plant.Water_Hardness,
+            Toxicity: plant.Toxicity,
+            Fertilizer: plant.Fertilizer,
+            Plant_Type: plant.Plant_Type,
+            Arrangement: plant.Arrangement,
+            Color: plant.Color,
+            Shape: plant.Shape,
+            Fragrance: plant.Fragrance,
+            Photo_1: plant.Photo_1,
+            Photo_2: plant.Photo_2,
+            Photo_3: plant.Photo_3,
+        }));
+        res.json(allplants);
+    } catch {
+        res.status(500).json({ error: 'plant not found' });
+    }
+});
+
+
+
+Router.get('/plantinfo5/:ID', async(req, res) => {
+    try {
+        const plants = await plant.find({ ID: req.params.ID });
+        const allplants = plants.map(plant => ({
+            ID: plant.ID,
+            Foliage: plant.Foliage,
+            Suitable_Weather: plant.Suitable_Weather,
+            Growing_Season: plant.Growing_Season,
+            Height: plant.Height,
+            Ultimate_Height: plant.Ultimate_Height,
+            Spread: plant.Spread,
+            Photo_1: plant.Photo_1,
+            Photo_2: plant.Photo_2,
+            Photo_3: plant.Photo_3,
+        }));
+        res.json(allplants);
+    } catch {
+        res.status(500).json({ error: 'plant not found' });
+    }
+});
+
+
+
+Router.get('/plantinfo6/:ID', async(req, res) => {
+    try {
+        const plants = await plant.find({ ID: req.params.ID });
+        const allplants = plants.map(plant => ({
+            ID: plant.ID,
+            Repotting: plant.Repotting,
+            Propogating: plant.Propogating,
+            Pinch_Prune: plant.Pinch_Prune,
+            Paste_Diseases: plant.Paste_Diseases,
+            More_Info: plant.More_Info,
+            Price: plant.Price,
+            Photo_1: plant.Photo_1,
+            Photo_2: plant.Photo_2,
+            Photo_3: plant.Photo_3,
+        }));
+        res.json(allplants);
+    } catch {
+        res.status(500).json({ error: 'plant not found' });
+    }
+});
+
+
+
 
 //=================> filter part
 
@@ -575,7 +754,7 @@ Router.post('/currentorder', async (req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'https://growmoreplant.netlify.app/#/orderlist/payment/' + randomId,
+                    return_url: 'http://localhost:4200/orderlist/payment/' + randomId,
                     payment_methods: '',
                     notify_url: 'https://plant-backend6.onrender.com/Apis/getpayment/' + randomId
                 }
@@ -721,11 +900,11 @@ Router.get('/pdf', async (req, res) => {
     console.log('sdfldf');
 
 
-    const orderData =await order.find({orderID:4,userId:'6569a4b66396d00721c0732e'});
-    
+    const orderData =await order.find({orderID:1,userId:'656884c8f26e1dea49e2ed1c'});
+
       // Specify the path to the EJS file
       const ejsFilePath = path.join(__dirname, 'order.ejs');
-    
+
       // Render the EJS file with orderData
       ejs.renderFile(ejsFilePath, { orderData }, (err, htmlContent) => {
         if (err) {
