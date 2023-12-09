@@ -10,6 +10,7 @@ const cart = require("../model/cart.js");
 const wishlist = require("../model/wishlist.js");
 const order = require("../model/order.js");
 const orderid = require("../model/orderid.js");
+const stock = require("../model/stock.js");
 const uuid = require('uuid');
 const secretkey = 'userdata@12#45';
 const axios = require('axios');
@@ -68,7 +69,7 @@ Router.get('/plant', async(req, res, next) => {
 
 Router.get('/allplant', async(req, res, next) => {
     try {
-        const plants = await plant.find();
+        const plants = await plant.find().skip(140);
 
         const allplants = plants.map(plant => ({
             _id: plant._id,
@@ -613,9 +614,15 @@ Router.delete('/deletewishlist/:userId', (req, res, next) => {
 
 Router.delete('/deleteorder/:userId', (req, res, next) => {
     const userId = req.params.userId;
-    orderid.findByIdAndUpdate(userId, { statusbar: 'cancel' })
-        .exec()
-        .then(result => {
+    orderid.findByIdAndUpdate(userId, { statusbar: 'cancel' }) 
+        .then(async result => {
+            const orderlist = await order.find({userId:result.userId,orderID:result.orderID});
+            for(let a of orderlist)
+            {
+                const stocklist = await stock.findOne({ID:a.productId});
+                console.log(stocklist);
+                await stock.findOneAndUpdate({ID:a.productId},{Stock:stocklist.Stock+a.quantity});
+            }
             res.status(200).json({ message: 'order item cancle successfully' });
         })
         .catch(err => {
@@ -754,7 +761,7 @@ Router.post('/currentorder', async (req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'https://growmoreplant.netlify.app/#/orderlist/payment/' + randomId,
+                    return_url: 'http://localhost:4200/#/orderlist/payment/' + randomId,
                     payment_methods: '',
                     notify_url: 'https://plant-backend6.onrender.com/Apis/getpayment/' + randomId
                 }
@@ -802,9 +809,9 @@ Router.post('/currentorder', async (req, res) => {
 });
 
 
-Router.get('/getpayment/:id', async (req, res) => {
+Router.get('/getpayment/:id',checkauth, async (req, res) => {
     const link_id = req.params.id;
-    console.log(link_id);
+    const userId = req.userId;
     try {
         const httpheader = {
             'accpet': 'application/json',
@@ -820,10 +827,20 @@ Router.get('/getpayment/:id', async (req, res) => {
             const response1 = await axios.get('https://sandbox.cashfree.com/pg/orders/' + order_id + '/payments', { headers: httpheader });
             if (response1.data) {
                 if(response1.data[0].payment_status == 'SUCCESS') {
-                    orderid.findOneAndUpdate({randomId:link_id},{statusbar:response1.data[0].payment_status})
+                    const orderlist = await orderid.findOneAndUpdate({randomId:link_id},{statusbar:response1.data[0].payment_status});
+                    const orderlist_1 = await order.find({userId:userId,orderID:orderlist.orderID});
+                    for(let or of orderlist_1)
+                    {
+                        if(or.statusbar === 'current')
+                        {   
+                            const onestock = await stock.findOne({ID:or.productId});
+                            await stock.updateOne({ID:or.productId},{Stock:onestock.Stock-or.quantity});
+                            await order.updateMany({userId:userId,orderID:or.orderID,productId:or.productId},{statusbar:'Past'});
+                        }   
+                    }
                 }
                 else {
-                    orderid.findOneAndUpdate({randomId:link_id},{statusbar:'failed'})
+                    await orderid.findOneAndUpdate({randomId:link_id},{statusbar:'failed'});
                 }
                 res.json({ data: response1.data[0].payment_method, order_id: response1.data[0].order_id, cf_payment_id: response1.data[0].cf_payment_id });
             } else {
@@ -837,6 +854,8 @@ Router.get('/getpayment/:id', async (req, res) => {
 
     }
 });
+
+
 
 Router.get('/getrepayment/:id', async (req, res) => {
     const link_id = req.params.id;
@@ -949,6 +968,12 @@ Router.get('/username', checkauth, async(req, res) => {
     console.log(userId);
     const use = await user.findById(userId);
     res.json({ name: use.username });
+});
+
+//=======stock
+Router.get('/getstock',async (req,res) => {
+    const stacklist = await stock.find();
+    res.json(stacklist);
 });
 
 

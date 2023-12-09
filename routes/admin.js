@@ -39,20 +39,30 @@ Router.post('/signup', async (req, res) => {
   
 
 
-  Router.post('/addplant', async (req, res) => {
-    const { Price,Direction,Humidity,WaterFreq,WaterReq,Sunlight_Freq,Soil,Exposure,Family,Botanical_Name,Blooming_Period, Sowing_Period,Container,Common_Name,Photo_1,Photo_2,Photo_3, Category,Growing_Time,Maintenance,Special_Properties,Location} = req.body;
-      
-    plant.findOne().sort({"ID":-1}).limit(1) 
-    .exec()
-    .then(async (res1) =>{
-      const ID = Number(res1.ID)+1;
-      console.log(ID);
-      const newplant = new plant({ ID,Price,Direction,Humidity,WaterFreq,WaterReq,Sunlight_Freq,Soil,Exposure,Family,Botanical_Name,Blooming_Period, Sowing_Period,Container,Common_Name,Photo_1,Photo_2,Photo_3, Category,Growing_Time,Maintenance,Special_Properties,Location });
-      res.json({ message: 'plant added successfull' });
-      await newplant.save();
-      
-    });
-  });
+  Router.post('/addplant', async(req, res) => {
+    try {
+        const { Price, Direction, Humidity, WaterFreq, WaterReq, Sunlight_Freq, Soil, Exposure, Family, Botanical_Name, Blooming_Period, Sowing_Period, Container, Common_Name, Photo_1, Photo_2, Photo_3, Category, Growing_Time, Maintenance, Special_Properties, Location } = req.body;
+
+        if (!Botanical_Name || !Common_Name) {
+            res.status(400).json({ error: 'Plant Name not be Empty..' });
+            return;
+        }
+        plant.findOne().sort({ "ID": -1 }).limit(1)
+            .exec()
+            .then(async(res1) => {
+                const ID = Number(res1.ID) + 1;
+                console.log(ID);
+                const newplant = new plant({ ID, Price, Direction, Humidity, WaterFreq, WaterReq, Sunlight_Freq, Soil, Exposure, Family, Botanical_Name, Blooming_Period, Sowing_Period, Container, Common_Name, Photo_1, Photo_2, Photo_3, Category, Growing_Time, Maintenance, Special_Properties, Location });
+                res.json({ message: 'plant added successfully' });
+                await newplant.save();
+
+            });
+    } catch (error) {
+        res.status(500).json({ error: 'Plant added Failed.' });
+
+    }
+
+});
   
   Router.post('/trending', async(req, res) => {
     try {
