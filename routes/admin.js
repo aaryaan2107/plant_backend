@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const user = require('../model/user.js');
 const plant = require('../model/plant.js')
 const trend = require('../model/trend.js');
+const stockdetails = require('../model/stock-details.js')
 
 Router.post('/signup', async (req, res) => {
     {
@@ -131,5 +132,41 @@ Router.get('/trend', async(req, res) => {
       res.json(res1);
   })
 });
+
+Router.post('/stock-details', async(req, res) => {
+console.log('dsdsdsdsd  ')
+  try {
+
+      const {
+          plantId,
+          plantName,
+          vendername,
+          invoiceNumber,
+          invoiceDate,
+          quantity,
+          price
+      } = req.body;
+      const a = await plant.find({ Common_Name: req.body.plantName });
+      let pid = a[0].ID;;
+
+      console.log(req.body.invoiceDate);
+      const details = new stockdetails({
+          plantId: pid,
+          plantName,
+          vendername,
+          invoiceNumber,
+          invoiceDate,
+          quantity,
+          price
+      });
+      console.log(details);
+      await details.save();
+      return res.json({ message: 'stock-details added successfully ' });
+  } catch (error) {
+      res.status(500).json({ error: 'internal server Error' });
+  }
+});
+
+
 
 module.exports = Router;
