@@ -38,7 +38,6 @@ Router.post('/signup', async (req, res) => {
   });
   
 
-
   Router.post('/addplant', async(req, res) => {
     try {
         const { Price, Direction, Humidity, WaterFreq, WaterReq, Sunlight_Freq, Soil, Exposure, Family, Botanical_Name, Blooming_Period, Sowing_Period, Container, Common_Name, Photo_1, Photo_2, Photo_3, Category, Growing_Time, Maintenance, Special_Properties, Location } = req.body;
