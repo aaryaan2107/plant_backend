@@ -4,42 +4,42 @@ const bcrypt = require('bcrypt');
 const user = require('../model/user.js');
 const plant = require('../model/plant.js')
 const trend = require('../model/trend.js');
+const stock = require('../model/stock.js')
 const stockdetails = require('../model/stock-details.js')
 
-Router.post('/signup', async (req, res) => {
+Router.post('/signup', async(req, res) => {
     {
-      try {
-        const { username, password, email, phone, address } = req.body;
-  
-        if (!username || !password) {
-          res.status(400).json({ error: 'Username or Password is Empty' });
-          return;
-        }
-        const exist = await user.findOne({ username });
-        if (exist) {
-          res.status(409).json({ error: 'Username already Exist' });
-          return;
-        }
-        const hashpassword = await bcrypt.hash(password, 10);
-        const newuser = new user({ username, password: hashpassword, email, phone, address ,role:'admin'});
-        await newuser.save();
-        res.status(200).json({ message: 'signup successfull' });
-      }
-      catch (error) {
-        res.status(500).json({ error: 'signup Failed..' });
-      }
-    }
-  });
-  Router.get('/addplantid', async (req ,res ) => {
-    plant.findOne().sort({"ID":-1}).limit(1) 
-    .exec()
-    .then((res1) =>{
-      res.json(res1);
-    });
-  });
-  
+        try {
+            const { username, password, email, phone, address } = req.body;
 
-  Router.post('/addplant', async(req, res) => {
+            if (!username || !password) {
+                res.status(400).json({ error: 'Username or Password is Empty' });
+                return;
+            }
+            const exist = await user.findOne({ username });
+            if (exist) {
+                res.status(409).json({ error: 'Username already Exist' });
+                return;
+            }
+            const hashpassword = await bcrypt.hash(password, 10);
+            const newuser = new user({ username, password: hashpassword, email, phone, address, role: 'admin' });
+            await newuser.save();
+            res.status(200).json({ message: 'signup successfull' });
+        } catch (error) {
+            res.status(500).json({ error: 'signup Failed..' });
+        }
+    }
+});
+Router.get('/addplantid', async(req, res) => {
+    plant.findOne().sort({ "ID": -1 }).limit(1)
+        .exec()
+        .then((res1) => {
+            res.json(res1);
+        });
+});
+
+
+Router.post('/addplant', async(req, res) => {
     try {
         const { Price, Direction, Humidity, WaterFreq, WaterReq, Sunlight_Freq, Soil, Exposure, Family, Botanical_Name, Blooming_Period, Sowing_Period, Container, Common_Name, Photo_1, Photo_2, Photo_3, Category, Growing_Time, Maintenance, Special_Properties, Location } = req.body;
 
@@ -63,8 +63,8 @@ Router.post('/signup', async (req, res) => {
     }
 
 });
-  
-  Router.post('/trending', async(req, res) => {
+
+Router.post('/trending', async(req, res) => {
     try {
         const trendid = req.body.trendid;
         const trendid2 = req.body.trendid2;
@@ -120,53 +120,87 @@ Router.delete('/removertrend/:id', async(req, res) => {
 
 Router.get('/trend', async(req, res) => {
 
-  // try {
-  //     const trendingPlants = await trend.find();
-  //     res.json(trendingPlants);
-  // } catch {
-  //     res.status(500).json({ error: 'Internal Error .' });
-  // }
-  trend.find()
-  .exec()
-  .then((res1) => {
-      res.json(res1);
-  })
+    // try {
+    //     const trendingPlants = await trend.find();
+    //     res.json(trendingPlants);
+    // } catch {
+    //     res.status(500).json({ error: 'Internal Error .' });
+    // }
+    trend.find()
+        .exec()
+        .then((res1) => {
+            res.json(res1);
+        })
 });
+
+
+
+//###################################  stock-part
 
 Router.post('/stock-details', async(req, res) => {
-console.log('dsdsdsdsd  ')
-  try {
 
-      const {
-          plantId,
-          plantName,
-          vendername,
-          invoiceNumber,
-          invoiceDate,
-          quantity,
-          price
-      } = req.body;
-      const a = await plant.find({ Common_Name: req.body.plantName });
-      let pid = a[0].ID;;
+    try {
+        const {
+            plantName,
+            vendername,
+            invoiceNumber,
+            invoiceDate,
+            quantity,
+            price
+        } = req.body;
 
-      console.log(req.body.invoiceDate);
-      const details = new stockdetails({
-          plantId: pid,
-          plantName,
-          vendername,
-          invoiceNumber,
-          invoiceDate,
-          quantity,
-          price
-      });
-      console.log(details);
-      await details.save();
-      return res.json({ message: 'stock-details added successfully ' });
-  } catch (error) {
-      res.status(500).json({ error: 'internal server Error' });
-  }
+        const a = await plant.find({ Common_Name: req.body.plantName });
+
+        if (a && a.length > 0) {
+            const pid = a[0].ID;
+
+            const details = new stockdetails({
+                plantId: pid,
+                plantName,
+                vendername,
+                invoiceNumber,
+                invoiceDate,
+                quantity,
+                price
+            });
+
+            await details.save();
+
+            const b = await stock.find({ Common_Name: req.body.plantName });
+
+            if (b && b.length > 0) {
+                const oldstock = b[0].Stock;
+                const result = await stock.findOneAndUpdate({
+                    ID: pid
+                }, { Stock: oldstock + details.quantity });
+
+                console.log(result);
+                if (!result) {
+                    console.log('no result');
+                }
+                return res.json({ message: 'stock-details added successfully' });
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'internal server Error' });
+    }
 });
 
+Router.post('/Allstock', async(req, res) => {
+    try {
+        const { id } = req.body;
 
+        const stacklist = await stock.find({ ID: req.body.id });
+
+        return res.json(stacklist);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'can`t get stock details' });
+    }
+
+
+})
 
 module.exports = Router;
