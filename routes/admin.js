@@ -43,7 +43,14 @@ Router.post('/addplant', async(req, res) => {
     try {
         const { Price, Direction, Humidity, WaterFreq, WaterReq, Sunlight_Freq, Soil, Exposure, Family, Botanical_Name, Blooming_Period, Sowing_Period, Container, Common_Name, Photo_1, Photo_2, Photo_3, Category, Growing_Time, Maintenance, Special_Properties, Location } = req.body;
 
-        if (!Botanical_Name || !Common_Name) {
+        const userdata = req.body.userdata;
+        const Size = req.body.Size;
+
+
+
+
+        if (!userdata.Botanical_Name || !userdata.Common_Name) {
+
             res.status(400).json({ error: 'Plant Name not be Empty..' });
             return;
         }
@@ -52,9 +59,13 @@ Router.post('/addplant', async(req, res) => {
             .then(async(res1) => {
                 const ID = Number(res1.ID) + 1;
                 console.log(ID);
-                const newplant = new plant({ ID, Price, Direction, Humidity, WaterFreq, WaterReq, Sunlight_Freq, Soil, Exposure, Family, Botanical_Name, Blooming_Period, Sowing_Period, Container, Common_Name, Photo_1, Photo_2, Photo_3, Category, Growing_Time, Maintenance, Special_Properties, Location });
-                res.json({ message: 'plant added successfully' });
-                await newplant.save();
+                const newplant = new plant(userdata);
+                // res.json({ message: 'plant added successfully' });
+                // await newplant.save();
+
+                const newstock = new stock({ ID: ID, Common_Name: userdata.Common_Name, Stock: 0, Size: Size });
+                res.json({ message: 'stock added successfully' });
+                await newstock.save();
 
             });
     } catch (error) {
@@ -146,8 +157,10 @@ Router.post('/stock-details', async(req, res) => {
             invoiceNumber,
             invoiceDate,
             quantity,
-            price
+            price,
+            Size
         } = req.body;
+        console.log('Size :', req.body);
 
         const a = await plant.find({ Common_Name: req.body.plantName });
 
@@ -161,17 +174,20 @@ Router.post('/stock-details', async(req, res) => {
                 invoiceNumber,
                 invoiceDate,
                 quantity,
-                price
+                price,
+                Size
             });
 
             await details.save();
+            console.log(details);
 
             const b = await stock.find({ Common_Name: req.body.plantName });
 
             if (b && b.length > 0) {
                 const oldstock = b[0].Stock;
                 const result = await stock.findOneAndUpdate({
-                    ID: pid
+                    ID: pid,
+                    Size: req.body.Size
                 }, { Stock: oldstock + details.quantity });
 
                 console.log(result);

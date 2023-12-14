@@ -231,7 +231,7 @@ Router.get('/plantinfo6/:ID', async(req, res) => {
 
 //=================> filter part
 
-Router.get('/plants/filter/:code', async (req, res) => {
+Router.get('/plants/filter/:code', async(req, res) => {
     const coded = req.params.code;
     if (coded == 'Indoor' || coded == 'Outdoor') {
         try {
@@ -244,7 +244,7 @@ Router.get('/plants/filter/:code', async (req, res) => {
     }
 });
 
-Router.post('/filterPlants', async (req, res) => {
+Router.post('/filterPlants', async(req, res) => {
     const filters = req.body;
     // console.log(filters);
     const page = req.query.page || 1;
@@ -276,7 +276,7 @@ Router.post('/filterPlants', async (req, res) => {
 
 //==========================> user part
 
-Router.post('/login', async (req, res) => {
+Router.post('/login', async(req, res) => {
     try {
         const { username, password } = req.body;
         const user1 = await user.findOne({ username });
@@ -297,7 +297,7 @@ Router.post('/login', async (req, res) => {
     }
 });
 
-Router.post('/signup', async (req, res) => {
+Router.post('/signup', async(req, res) => {
     {
         try {
             const { username, password, email, phone, home_address } = req.body;
@@ -330,7 +330,7 @@ Router.get('/data', checkauth, (req, res) => {
     }
 });
 
-Router.post('/valid', async (req, res) => {
+Router.post('/valid', async(req, res) => {
     const token = req.headers.authorization.split(' ')[1];
     if (!token) {
         res.status(200).json({ success: false, message: "Error! Token was not provided." });
@@ -435,7 +435,7 @@ Router.put('/checkupdate', checkauth, (req, res) => {
 
 //=======================> cart part
 Router.post('/cart', (req, res) => {
-    const { userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1 } = req.body;
+    const { userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1, Size } = req.body;
     console.log(req.body);
     CartItem.findOne({ userId: userId, productId: productId })
         .exec()
@@ -455,7 +455,7 @@ Router.post('/cart', (req, res) => {
                         })
                 }
             } else {
-                const cart = new CartItem({ userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1 });
+                const cart = new CartItem({ userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1, Size });
                 cart.save();
             }
 
@@ -472,7 +472,7 @@ Router.get('/cartitem', checkauth, (req, res) => {
             res.json(cartItems);
         })
 });
-Router.post('/cartnew', checkauth, async (req, res) => {
+Router.post('/cartnew', checkauth, async(req, res) => {
 
     try {
         const { cartData } = req.body;
@@ -483,9 +483,9 @@ Router.post('/cartnew', checkauth, async (req, res) => {
                     productId: productItem.ID,
                     quantity: outerItem.quantity,
                     Price: productItem.Price,
-                    Common_Name:productItem.Common_Name,
-                    Botanical_Name:productItem.Botanical_Name,
-                    Photo_1:productItem.Photo_1
+                    Common_Name: productItem.Common_Name,
+                    Botanical_Name: productItem.Botanical_Name,
+                    Photo_1: productItem.Photo_1
                 });
 
                 await cartItem.save();
@@ -568,15 +568,14 @@ Router.post('/qtymins', (req, res) => {
 
 //============================> wishlist part
 
-Router.post('/wishlist', async (req, res) => {
+Router.post('/wishlist', async(req, res) => {
     const { productId, userId, Photo_1, Common_Name, Botanical_Name, Price, ID } = req.body;
     wishlist.findOne({ productId: productId, userId: userId })
         .exec()
-        .then(async (res1) => {
+        .then(async(res1) => {
             if (res1) {
                 res.json({ success: false, massges: 'product already add', data: res1 });
-            }
-            else {
+            } else {
                 const newwishlist = new wishlist({ productId, userId, class: 'res1', Photo_1, Common_Name, Botanical_Name, Price, ID });
                 console.log(newwishlist);
                 await newwishlist.save();
@@ -586,7 +585,7 @@ Router.post('/wishlist', async (req, res) => {
 
 });
 
-Router.get('/getwishlist', checkauth, async (req, res) => {
+Router.get('/getwishlist', checkauth, async(req, res) => {
     const userId = req.userId;
     wishlist.find({ userId: userId })
         .exec()
@@ -614,14 +613,13 @@ Router.delete('/deletewishlist/:userId', (req, res, next) => {
 
 Router.delete('/deleteorder/:userId', (req, res, next) => {
     const userId = req.params.userId;
-    orderid.findByIdAndUpdate(userId, { statusbar: 'cancel' }) 
+    orderid.findByIdAndUpdate(userId, { statusbar: 'cancel' })
         .then(async result => {
-            const orderlist = await order.find({userId:result.userId,orderID:result.orderID});
-            for(let a of orderlist)
-            {
-                const stocklist = await stock.findOne({ID:a.productId});
+            const orderlist = await order.find({ userId: result.userId, orderID: result.orderID });
+            for (let a of orderlist) {
+                const stocklist = await stock.findOne({ ID: a.productId });
                 console.log(stocklist);
-                await stock.findOneAndUpdate({ID:a.productId},{Stock:stocklist.Stock+a.quantity});
+                await stock.findOneAndUpdate({ ID: a.productId }, { Stock: stocklist.Stock + a.quantity });
             }
             res.status(200).json({ message: 'order item cancle successfully' });
         })
@@ -630,7 +628,7 @@ Router.delete('/deleteorder/:userId', (req, res, next) => {
         });
 });
 
-Router.get('/orderid', checkauth, async (req, res) => {
+Router.get('/orderid', checkauth, async(req, res) => {
     const userId = req.userId;
     orderid.findOne({ userId: userId }).sort({ "orderID": -1 }).limit(1)
         .exec()
@@ -638,7 +636,7 @@ Router.get('/orderid', checkauth, async (req, res) => {
             res.json(res1);
         });
 });
-Router.get('/getcurrentorder', checkauth, async (req, res) => {
+Router.get('/getcurrentorder', checkauth, async(req, res) => {
     const userId = req.userId;
 
     orderid.find({ userId: userId })
@@ -657,7 +655,7 @@ Router.post('/allgetcurrentorder', (req, res, next) => {
         });
 });
 
-Router.get('/pastorder/:userId', async (req, res) => {
+Router.get('/pastorder/:userId', async(req, res) => {
     const userId = req.params.userId;
     order.findByIdAndUpdate(userId, { statusbar: 'past' })
         .exec()
@@ -671,7 +669,7 @@ Router.get('/pastorder/:userId', async (req, res) => {
 
 //======================> search part
 
-Router.get('/search', async (req, res) => {
+Router.get('/search', async(req, res) => {
     const { search } = req.query;
     const page = req.query.page || 1;
     const pageSize = req.query.pageSize;
@@ -692,7 +690,7 @@ Router.get('/search', async (req, res) => {
     }
 });
 
-Router.get('/search2', async (req, res) => {
+Router.get('/search2', async(req, res) => {
     const { search } = req.query;
     try {
         const plants = await plant.find({
@@ -732,7 +730,7 @@ Router.get('/search3', async(req, res) => {
 
 // ======================> payment part
 
-Router.post('/currentorder', async (req, res) => {
+Router.post('/currentorder', async(req, res) => {
     const { userId, Price, quantity, home_address, orderID } = req.body;
     const userdata = await user.findOne({ _id: userId });
 
@@ -809,7 +807,7 @@ Router.post('/currentorder', async (req, res) => {
 });
 
 
-Router.get('/getpayment/:id',checkauth, async (req, res) => {
+Router.get('/getpayment/:id', checkauth, async(req, res) => {
     const link_id = req.params.id;
     const userId = req.userId;
     try {
@@ -826,21 +824,18 @@ Router.get('/getpayment/:id',checkauth, async (req, res) => {
             // orderid.findOneAndUpdate({randomId:link_id},)
             const response1 = await axios.get('https://sandbox.cashfree.com/pg/orders/' + order_id + '/payments', { headers: httpheader });
             if (response1.data) {
-                if(response1.data[0].payment_status == 'SUCCESS') {
-                    const orderlist = await orderid.findOneAndUpdate({randomId:link_id},{statusbar:response1.data[0].payment_status});
-                    const orderlist_1 = await order.find({userId:userId,orderID:orderlist.orderID});
-                    for(let or of orderlist_1)
-                    {
-                        if(or.statusbar === 'current')
-                        {   
-                            const onestock = await stock.findOne({ID:or.productId});
-                            await stock.updateOne({ID:or.productId},{Stock:onestock.Stock-or.quantity});
-                            await order.updateMany({userId:userId,orderID:or.orderID,productId:or.productId},{statusbar:'Past'});
-                        }   
+                if (response1.data[0].payment_status == 'SUCCESS') {
+                    const orderlist = await orderid.findOneAndUpdate({ randomId: link_id }, { statusbar: response1.data[0].payment_status });
+                    const orderlist_1 = await order.find({ userId: userId, orderID: orderlist.orderID });
+                    for (let or of orderlist_1) {
+                        if (or.statusbar === 'current') {
+                            const onestock = await stock.findOne({ ID: or.productId });
+                            await stock.updateOne({ ID: or.productId }, { Stock: onestock.Stock - or.quantity });
+                            await order.updateMany({ userId: userId, orderID: or.orderID, productId: or.productId }, { statusbar: 'Past' });
+                        }
                     }
-                }
-                else {
-                    await orderid.findOneAndUpdate({randomId:link_id},{statusbar:'failed'});
+                } else {
+                    await orderid.findOneAndUpdate({ randomId: link_id }, { statusbar: 'failed' });
                 }
                 res.json({ data: response1.data[0].payment_method, order_id: response1.data[0].order_id, cf_payment_id: response1.data[0].cf_payment_id });
             } else {
@@ -857,7 +852,7 @@ Router.get('/getpayment/:id',checkauth, async (req, res) => {
 
 
 
-Router.get('/getrepayment/:id', async (req, res) => {
+Router.get('/getrepayment/:id', async(req, res) => {
     const link_id = req.params.id;
     try {
         const httpheader = {
@@ -896,18 +891,18 @@ Router.post('/cashfree-webhook', (req, res) => {
 
 Router.get('/plant/:Family', (req, res) => {
     const Family = req.params.Family;
-    plant.find({Family:Family})
-    .exec()
-    .then((res1) => {
-        res.json({data:res1,length:res1.length});
-    });
+    plant.find({ Family: Family })
+        .exec()
+        .then((res1) => {
+            res.json({ data: res1, length: res1.length });
+        });
 });
 
 Router.get('/plantid/:ID', (req, res) => {
-    plant.find({ID:req.params.ID})
-    .then((res1) => {
-        res.json({data:res1});
-    });
+    plant.find({ ID: req.params.ID })
+        .then((res1) => {
+            res.json({ data: res1 });
+        });
 });
 
 
@@ -915,20 +910,20 @@ Router.get('/plantid/:ID', (req, res) => {
 //================= pdf part
 
 
-Router.get('/pdf', async (req, res) => {
+Router.get('/pdf', async(req, res) => {
     console.log('sdfldf');
 
 
-    const orderData =await order.find({orderID:1,userId:'656884c8f26e1dea49e2ed1c'});
+    const orderData = await order.find({ orderID: 1, userId: '656884c8f26e1dea49e2ed1c' });
 
-      // Specify the path to the EJS file
-      const ejsFilePath = path.join(__dirname, 'order.ejs');
+    // Specify the path to the EJS file
+    const ejsFilePath = path.join(__dirname, 'order.ejs');
 
-      // Render the EJS file with orderData
-      ejs.renderFile(ejsFilePath, { orderData }, (err, htmlContent) => {
+    // Render the EJS file with orderData
+    ejs.renderFile(ejsFilePath, { orderData }, (err, htmlContent) => {
         if (err) {
-          res.status(500).send('Error rendering EJS file');
-          return;
+            res.status(500).send('Error rendering EJS file');
+            return;
         }
         // Define options for pdf.create
         const options = { format: 'Letter' };
@@ -951,13 +946,13 @@ Router.get('/pdf', async (req, res) => {
     });
 });
 
-Router.get('/orderinfo/:ID',checkauth, async (req, res) => {
+Router.get('/orderinfo/:ID', checkauth, async(req, res) => {
     const userId = req.userId;
     const id = req.params.ID;
     try {
-        const order1 = await orderid.find({userId:userId,orderID:id});
-        const res1 = await order.find({orderID:id,userId:userId});
-        res.json({item:res1,date:order1[0].date,Price:order1[0].Price,Statusbar:order1[0].statusbar,address:order1[0].address})    
+        const order1 = await orderid.find({ userId: userId, orderID: id });
+        const res1 = await order.find({ orderID: id, userId: userId });
+        res.json({ item: res1, date: order1[0].date, Price: order1[0].Price, Statusbar: order1[0].statusbar, address: order1[0].address })
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -970,11 +965,6 @@ Router.get('/username', checkauth, async(req, res) => {
     res.json({ name: use.username });
 });
 
-//=======stock
-Router.get('/getstock',async (req,res) => {
-    const stacklist = await stock.find();
-    res.json(stacklist);
-});
 
 
-module.exports = Router;
+https://growmoreplant.netlify.app/;
