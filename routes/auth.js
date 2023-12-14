@@ -966,5 +966,4 @@ Router.get('/username', checkauth, async(req, res) => {
 });
 
 
-
-https://growmoreplant.netlify.app/;
+module.exports = Router;
