@@ -11,6 +11,7 @@ const wishlist = require("../model/wishlist.js");
 const order = require("../model/order.js");
 const orderid = require("../model/orderid.js");
 const stock = require("../model/stock.js");
+const tranction = require("../model/trancation.js");
 const uuid = require('uuid');
 const secretkey = 'userdata@12#45';
 const axios = require('axios');
@@ -632,6 +633,8 @@ Router.delete('/deleteorder/:userId', (req, res, next) => {
                 const stocklist = await stock.findOne({ ID: a.productId });
                 console.log(stocklist);
                 await stock.findOneAndUpdate({ ID: a.productId }, { Stock: stocklist.Stock + a.quantity });
+                const newtreanction = new tranction({ID:a.productId,orderID:a.orderID,Common_Name:a.Common_Name,Size:a.Size,date:a.date,quantity:a.quantity,Description:'Cancle'});
+                newtreanction.save();
             }
             res.status(200).json({ message: 'order item cancle successfully' });
         })
@@ -841,9 +844,11 @@ Router.get('/getpayment/:id', checkauth, async(req, res) => {
                     const orderlist_1 = await order.find({ userId: userId, orderID: orderlist.orderID });
                     for (let or of orderlist_1) {
                         if (or.statusbar === 'current') {
-                            const onestock = await stock.findOne({ ID: or.productId });
-                            await stock.updateOne({ ID: or.productId }, { Stock: onestock.Stock - or.quantity });
-                            await order.updateMany({ userId: userId, orderID: or.orderID, productId: or.productId }, { statusbar: 'Past' });
+                            const onestock = await stock.findOne({ ID: or.productId,Size:or.Size });
+                            await stock.updateOne({ _id:onestock._id }, { Stock: onestock.Stock - or.quantity });
+                            await order.updateMany({ userId: userId, orderID: or.orderID, productId: or.productId }, { statusbar: 'past' });
+                            const newtreanction = new tranction({ID:or.productId,orderID:or.orderID,Common_Name:or.Common_Name,Size:or.Size,date:or.date,quantity:or.quantity,Description:'Sales'});
+                            newtreanction.save();
                         }
                     }
                 } else {
