@@ -53,7 +53,9 @@ Router.get('/plant', async(req, res, next) => {
             ID: plant.ID,
             Common_Name: plant.Common_Name,
             Botanical_Name: plant.Botanical_Name,
-            Price: plant.Price,
+            Sprice: plant.Sprice,
+            Mprice: plant.Mprice,
+            Lprice: plant.Lprice,
             Photo_1: plant.Photo_1,
         }));
         res.json({
@@ -76,7 +78,9 @@ Router.get('/allplant', async(req, res, next) => {
             ID: plant.ID,
             Common_Name: plant.Common_Name,
             Botanical_Name: plant.Botanical_Name,
-            Price: plant.Price,
+            Sprice: plant.Sprice,
+            Mprice: plant.Mprice,
+            Lprice: plant.Lprice,
         }));
 
         res.json(allplants);
@@ -97,7 +101,9 @@ Router.get('/plantinfo1/:ID', async(req, res) => {
             Growing_Time: plant.Growing_Time,
             Maintenance: plant.Maintenance,
             Special_Properties: plant.Special_Properties,
-            Price: plant.Price,
+            Sprice: plant.Sprice,
+            Mprice: plant.Mprice,
+            Lprice: plant.Lprice,
             Photo_1: plant.Photo_1,
             Photo_2: plant.Photo_2,
             Photo_3: plant.Photo_3,
@@ -120,7 +126,9 @@ Router.get('/plantinfo2/:ID', async(req, res) => {
             Soil: plant.Soil,
             Soil_Moisture: plant.Soil_Moisture,
             Soil_PH: plant.Soil_PH,
-            Price: plant.Price,
+            Sprice: plant.Sprice,
+            Mprice: plant.Mprice,
+            Lprice: plant.Lprice,
             Photo_1: plant.Photo_1,
             Photo_2: plant.Photo_2,
             Photo_3: plant.Photo_3,
@@ -144,7 +152,9 @@ Router.get('/plantinfo3/:ID', async(req, res) => {
             Temprature: plant.Temprature,
             Humidity: plant.Humidity,
             Fertilizer: plant.Fertilizer,
-            Price: plant.Price,
+            Sprice: plant.Sprice,
+            Mprice: plant.Mprice,
+            Lprice: plant.Lprice,
             Photo_1: plant.Photo_1,
             Photo_2: plant.Photo_2,
             Photo_3: plant.Photo_3,
@@ -215,7 +225,9 @@ Router.get('/plantinfo6/:ID', async(req, res) => {
             Pinch_Prune: plant.Pinch_Prune,
             Paste_Diseases: plant.Paste_Diseases,
             More_Info: plant.More_Info,
-            Price: plant.Price,
+            Sprice: plant.Sprice,
+            Mprice: plant.Mprice,
+            Lprice: plant.Lprice,
             Photo_1: plant.Photo_1,
             Photo_2: plant.Photo_2,
             Photo_3: plant.Photo_3,
@@ -759,7 +771,7 @@ Router.post('/currentorder', async(req, res) => {
                     send_email: true
                 },
                 link_meta: {
-                    return_url: 'https://growmoreplant.netlify.app/#/orderlist/payment/' + randomId,
+                    return_url: 'http://localhost:4200/#/orderlist/payment/' + randomId,
                     payment_methods: '',
                     notify_url: 'https://plant-backend6.onrender.com/Apis/getpayment/' + randomId
                 }
@@ -964,6 +976,8 @@ Router.get('/username', checkauth, async(req, res) => {
     const use = await user.findById(userId);
     res.json({ name: use.username });
 });
+
+
 
 
 module.exports = Router;

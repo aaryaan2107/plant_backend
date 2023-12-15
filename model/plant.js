@@ -53,7 +53,9 @@
         More_Info: String,
         Planting_Potting_Growing_Instruction: String,
         quantity: String,
-        Price: String,
+        Sprice: String,
+        Mprice: String,
+        Lprice: String
 
     })
 
