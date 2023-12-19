@@ -4,8 +4,10 @@ const bcrypt = require('bcrypt');
 const user = require('../model/user.js');
 const plant = require('../model/plant.js')
 const trend = require('../model/trend.js');
-const stock = require('../model/stock.js')
-const stockdetails = require('../model/stock-details.js')
+const stock = require('../model/stock.js');
+const tranction = require('../model/trancation.js');
+const stockdetails = require('../model/stock-details.js');
+const checkauth = require("../middleware/checkauth.js");
 
 Router.post('/signup', async(req, res) => {
     {
@@ -160,7 +162,6 @@ Router.post('/stock-details', async(req, res) => {
             price,
             Size
         } = req.body;
-        console.log('Size :', req.body);
 
         const a = await plant.find({ Common_Name: req.body.plantName });
 
@@ -179,10 +180,9 @@ Router.post('/stock-details', async(req, res) => {
             });
 
             await details.save();
-            console.log(details);
 
-            const b = await stock.find({ Common_Name: req.body.plantName });
-
+            const b = await stock.find({ Common_Name: req.body.plantName ,Size : req.body.Size});
+            console.log(b);
             if (b && b.length > 0) {
                 const oldstock = b[0].Stock;
                 const result = await stock.findOneAndUpdate({
@@ -194,6 +194,8 @@ Router.post('/stock-details', async(req, res) => {
                 if (!result) {
                     console.log('no result');
                 }
+                const newtreanction = new tranction({ID:pid,userID:details.vendername,orderID:details.invoiceNumber,Common_Name:details.plantName,Size:req.body.Size,Price:req.body.price,date:details.invoiceDate,quantity:details.quantity,Description:'Parches'});
+                newtreanction.save();
                 return res.json({ message: 'stock-details added successfully' });
             }
         }
@@ -215,8 +217,21 @@ Router.post('/Allstock', async(req, res) => {
         console.log(error);
         res.status(500).json({ error: 'can`t get stock details' });
     }
-
-
 })
+
+Router.post('/deadstock',checkauth,async(req, res) => {
+    const userId = req.userId;
+    const {reason , quantity} = req.body.formdata;
+    const stockId = req.body.id;
+
+    const stocklist = await stock.findById(stockId);
+    const currentDate = new Date();
+    const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+    const newstockdetelis = new tranction({ID:stocklist.ID,userID:userId,Common_Name:stocklist.Common_Name,Size:stocklist.Size,date:formattedDate,quantity:quantity,Description:reason});
+    newstockdetelis.save();    
+
+    await stock.findByIdAndUpdate(stockId,{Stock:stocklist.Stock - quantity})
+    res.json({message:'plant cut in stock for reason is '+ reason})
+});
 
 module.exports = Router;

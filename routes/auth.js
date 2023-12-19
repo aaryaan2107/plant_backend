@@ -72,7 +72,7 @@ Router.get('/plant', async(req, res, next) => {
 
 Router.get('/allplant', async(req, res, next) => {
     try {
-        const plants = await plant.find().skip(140);
+        const plants = await plant.find();
 
         const allplants = plants.map(plant => ({
             _id: plant._id,
@@ -450,18 +450,18 @@ Router.put('/checkupdate', checkauth, (req, res) => {
 Router.post('/cart', (req, res) => {
     const { userId, productId, quantity, Price, Common_Name, Botanical_Name, Photo_1, Size } = req.body;
     console.log(req.body);
-    CartItem.findOne({ userId: userId, productId: productId })
+    CartItem.findOne({ userId: userId, productId: productId ,Size:Size})
         .exec()
         .then((res) => {
             if (res) {
                 if (res.quantity + quantity >= 20) {
-                    CartItem.findOneAndUpdate({ userId: userId, productId: productId }, { quantity: 20 })
+                    CartItem.findOneAndUpdate({ userId: userId, productId: productId, Size:Size }, { quantity: 20 })
                         .exec()
                         .then((res1) => {
                             console.log(res1);
                         })
                 } else {
-                    CartItem.findOneAndUpdate({ userId: userId, productId: productId }, { quantity: res.quantity + quantity })
+                    CartItem.findOneAndUpdate({ userId: userId, productId: productId, Size:Size }, { quantity: res.quantity + quantity })
                         .exec()
                         .then((res1) => {
                             console.log(res1);
@@ -489,19 +489,35 @@ Router.post('/cartnew', checkauth, async(req, res) => {
 
     try {
         const { cartData } = req.body;
+        console.log(cartData);
         for (const outerItem of cartData) {
             for (const productItem of outerItem.product) {
-                const cartItem = new CartItem({
+
+
+                const existCartItem = await CartItem.findOne({
                     userId: req.userId,
                     productId: productItem.ID,
-                    quantity: outerItem.quantity,
-                    Price: productItem.Price,
-                    Common_Name: productItem.Common_Name,
-                    Botanical_Name: productItem.Botanical_Name,
-                    Photo_1: productItem.Photo_1
+                    Size: outerItem.Size
                 });
 
-                await cartItem.save();
+                if (existCartItem) {
+
+                    existCartItem.quantity += outerItem.quantity;
+                    await existCartItem.save();
+                } else {
+                    const cartItem = new CartItem({
+                        userId: req.userId,
+                        productId: productItem.ID,
+                        quantity: outerItem.quantity,
+                        Price: outerItem.Price,
+                        Size: outerItem.Size,
+                        Common_Name: productItem.Common_Name,
+                        Botanical_Name: productItem.Botanical_Name,
+                        Photo_1: productItem.Photo_1
+                    });
+
+                    await cartItem.save();
+                }
             }
         }
         res.status(200).json({ message: 'Cart data saved successfully' });
@@ -509,6 +525,7 @@ Router.post('/cartnew', checkauth, async(req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
 
 
 Router.delete('/deleteitem/:userId', (req, res, next) => {
@@ -847,7 +864,7 @@ Router.get('/getpayment/:id', checkauth, async(req, res) => {
                             const onestock = await stock.findOne({ ID: or.productId,Size:or.Size });
                             await stock.updateOne({ _id:onestock._id }, { Stock: onestock.Stock - or.quantity });
                             await order.updateMany({ userId: userId, orderID: or.orderID, productId: or.productId }, { statusbar: 'past' });
-                            const newtreanction = new tranction({ID:or.productId,orderID:or.orderID,Common_Name:or.Common_Name,Size:or.Size,date:or.date,quantity:or.quantity,Description:'Sales'});
+                            const newtreanction = new tranction({ID:or.productId,userID:userId,orderID:or.orderID,Common_Name:or.Common_Name,Price:or.Price,Size:or.Size,date:or.date,quantity:or.quantity,Description:'Sales'});
                             newtreanction.save();
                         }
                     }
@@ -931,36 +948,6 @@ Router.get('/pdf', async(req, res) => {
     console.log('sdfldf');
 
 
-    const orderData = await order.find({ orderID: 1, userId: '656884c8f26e1dea49e2ed1c' });
-
-    // Specify the path to the EJS file
-    const ejsFilePath = path.join(__dirname, 'order.ejs');
-
-    // Render the EJS file with orderData
-    ejs.renderFile(ejsFilePath, { orderData }, (err, htmlContent) => {
-        if (err) {
-            res.status(500).send('Error rendering EJS file');
-            return;
-        }
-        // Define options for pdf.create
-        const options = { format: 'Letter' };
-
-        // Generate PDF and send it as a response
-        pdf.create(htmlContent, options).toStream((pdfErr, stream) => {
-            if (pdfErr) {
-                res.status(500).send('Error generating PDF');
-                return;
-            }
-
-            // Set the content type and attachment header
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', 'attachment; filename=order-summary.pdf');
-
-            // Pipe the PDF stream to the response
-            stream.pipe(res);
-            // res.json('ddfhfdhhf');
-        });
-    });
 });
 
 Router.get('/orderinfo/:ID', checkauth, async(req, res) => {
