@@ -922,16 +922,38 @@ Router.post('/cashfree-webhook', (req, res) => {
 
     res.status(200).json({ massges: 'Webhook received successfully', data: payload });
 });
+Router.post('/plant/:Family', async(req, res) => {
 
-Router.get('/plant/:Family', (req, res) => {
-    const Family = req.params.Family;
-    plant.find({ Family: Family })
-        .exec()
-        .then((res1) => {
-            res.json({ data: res1, length: res1.length });
-        });
+
+    try {
+        const Family = req.params.Family;
+
+
+        const plants = await (plant.find({ Family: Family }));
+        const sorted = plants.filter(item => item.ID !== req.body.Id)
+
+        const allplants = sorted.map(plant => ({
+            _id: plant._id,
+            ID: plant.ID,
+            Common_Name: plant.Common_Name,
+            Botanical_Name: plant.Botanical_Name,
+            Sprice: plant.Sprice,
+            Mprice: plant.Mprice,
+            Lprice: plant.Lprice,
+            Photo_1: plant.Photo_1
+        }));
+        console.log(allplants);
+        res.json({ data: allplants, length: allplants.length });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    // plant.find()
+    //     .exec()
+    //     .then((res1) => {
+    //         res.json({ data: res1, length: res1.length });
+    //     });
 });
-
 Router.get('/plantid/:ID', (req, res) => {
     plant.find({ ID: req.params.ID })
         .then((res1) => {
